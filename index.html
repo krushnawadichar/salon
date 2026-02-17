@@ -1,1 +1,493 @@
-Test
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pablo · Salon | QR Scan & Instant Booking</title>
+  <!-- Bootstrap 5 + Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- QR Code generator library (to create dynamic QR) -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <style>
+    :root {
+      --pablo-brown: #8B5A2B;
+      --pablo-tan: #D9B382;
+      --pablo-light: #F8F0E6;
+      --pablo-dark: #2C1E12;
+      --pablo-accent: #A87848;
+      --white-scanner: #FFFFFF;
+      --scanner-border: #e0d6cc;
+    }
+    body {
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      background-color: #fcf9f6;
+      color: #1e1b18;
+    }
+    .bg-pablo-soft { background-color: #faf3ed; }
+    .text-pablo { color: var(--pablo-brown); }
+    .btn-pablo {
+      background-color: var(--pablo-brown);
+      border: none;
+      color: white;
+      font-weight: 600;
+      padding: 0.7rem 2rem;
+      border-radius: 50px;
+    }
+    .btn-pablo:hover {
+      background-color: #6f451f;
+      color: white;
+    }
+    .btn-outline-pablo {
+      border: 2px solid var(--pablo-brown);
+      color: var(--pablo-brown);
+      background: transparent;
+      border-radius: 50px;
+      font-weight: 600;
+    }
+    .btn-outline-pablo:hover {
+      background-color: var(--pablo-brown);
+      color: white;
+    }
+    .section-header {
+      font-weight: 700;
+      color: var(--pablo-dark);
+      margin-bottom: 2rem;
+      position: relative;
+    }
+    .section-header:after {
+      content: '';
+      display: block;
+      width: 70px;
+      height: 4px;
+      background: var(--pablo-tan);
+      margin-top: 0.6rem;
+      border-radius: 4px;
+    }
+    /* white scanner card */
+    .scanner-white-card {
+      background: white;
+      border-radius: 2.5rem;
+      padding: 2rem;
+      box-shadow: 0 30px 40px -25px rgba(100, 70, 40, 0.25);
+      border: 1px solid var(--scanner-border);
+    }
+    .qr-image-container {
+      background: #f5ede5;
+      padding: 1.5rem;
+      border-radius: 2rem;
+      display: inline-block;
+      margin: 0 auto;
+    }
+    #dynamicQrCode {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    canvas, img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 16px;
+    }
+    .scanner-hint {
+      background: #f8f3ef;
+      border-radius: 3rem;
+      padding: 0.8rem 1.8rem;
+      color: var(--pablo-dark);
+      border: 1px dashed var(--pablo-brown);
+    }
+    .booking-form-card {
+      background: white;
+      border-radius: 2rem;
+      padding: 2rem;
+      box-shadow: 0 20px 35px -10px #d4bcab;
+      border: 1px solid #f0e2d6;
+    }
+    .service-tag {
+      background: #f5eae0;
+      padding: 0.5rem 1.2rem;
+      border-radius: 40px;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+    .testimonial-card {
+      background: white;
+      border-radius: 1.8rem;
+      padding: 1.5rem;
+      box-shadow: 0 12px 22px -10px #dac2b0;
+    }
+    .footer {
+      background: #1f1b17;
+      color: #ddd2c6;
+    }
+    .footer a { color: #d2bba8; text-decoration: none; }
+    .footer a:hover { color: #f2dac8; }
+    .nav-link.active {
+      color: var(--pablo-brown) !important;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ==================== NAVBAR (PABLO) ==================== -->
+<nav class="navbar navbar-expand-lg bg-white py-3 border-bottom">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center fw-bold fs-2" href="#">
+      <i class="fas fa-mustache me-2" style="color: var(--pablo-brown);"></i>
+      <span style="color: var(--pablo-dark);">PABLO</span>
+      <span class="badge bg-pablo-light text-pablo ms-3 px-3 py-2 rounded-pill fs-6">scan & book</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarMain">
+      <ul class="navbar-nav mx-auto mb-2 mb-lg-0 fw-semibold gap-3">
+        <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Services</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Book slot</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">QR scan</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
+      </ul>
+      <div class="d-flex gap-2">
+        <span class="bg-pablo-light rounded-pill px-4 py-2 d-flex align-items-center">
+          <i class="fas fa-qrcode me-2 text-pablo"></i> <span>Scan at door</span>
+        </span>
+        <a href="#" class="btn btn-outline-pablo px-4 py-2">Sign in</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ==================== HERO + WHITE SCANNER QR SECTION ==================== -->
+<section class="py-5 bg-pablo-soft">
+  <div class="container py-3">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <div class="d-inline-block bg-white px-4 py-2 rounded-pill shadow-sm mb-4">
+          <i class="fas fa-hand-sparkles me-2 text-pablo"></i> Walk‑ins always welcome
+        </div>
+        <h1 class="display-4 fw-bold" style="color: var(--pablo-dark);">Instant salon slot,</h1>
+        <h2 class="display-6 fw-semibold mb-3">just <span style="color: var(--pablo-brown);">scan the QR code</span></h2>
+        <p class="lead text-secondary mb-4">Customers can scan the QR at our door or here on the website to book an appointment immediately. No login, no waiting.</p>
+        
+        <!-- dynamic QR code image (original, scan with mobile) -->
+        <div class="d-flex flex-wrap align-items-center gap-4 mt-4">
+          <div class="qr-image-container bg-white shadow-sm">
+            <div id="dynamicQrCode"></div>
+          </div>
+          <div>
+            <span class="badge bg-success mb-2 px-3 py-2 fs-6"><i class="fas fa-check-circle"></i> Active QR code</span>
+            <p class="mb-1"><i class="fas fa-mobile-alt me-2"></i> <strong>Scan this with your phone camera</strong></p>
+            <p class="text-secondary small">(opens booking form instantly)</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <!-- WHITE SCANNER CARD (for visual / simulation) -->
+        <div class="scanner-white-card">
+          <div class="d-flex align-items-center gap-3 mb-4">
+            <i class="fas fa-camera-retro fa-3x text-pablo"></i>
+            <div>
+              <h4 class="fw-bold mb-1">white scanner</h4>
+              <p class="text-secondary mb-0">tap to simulate scanning & book</p>
+            </div>
+          </div>
+          <!-- clickable white scanner area (simulates QR scan) -->
+          <div class="bg-light rounded-4 p-4 text-center" id="simulateScanner" style="cursor: pointer; border: 3px dashed var(--pablo-brown); background: #ffffff;">
+            <i class="fas fa-qrcode fa-4x text-pablo mb-3"></i>
+            <h5 class="fw-bold">tap here to scan QR</h5>
+            <p class="text-muted small" id="scannerStatus">waiting for scan...</p>
+          </div>
+          <div class="mt-4 d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-chair text-pablo me-2"></i> 4 stylists ready</span>
+            <span><i class="fas fa-stopwatch text-pablo me-2"></i> ~5 min average wait</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 2: FEATURES ==================== -->
+<section class="py-5 bg-white">
+  <div class="container">
+    <h2 class="section-header display-6 fw-bold">Why Pablo?</h2>
+    <div class="row g-4">
+      <div class="col-md-3 col-6">
+        <div class="p-3 text-center"><i class="fas fa-qrcode fa-3x text-pablo mb-3"></i><h5>QR at door</h5><p class="text-secondary">scan & get token</p></div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="p-3 text-center"><i class="fas fa-chair fa-3x text-pablo mb-3"></i><h5>no wait</h5><p class="text-secondary">instant queue number</p></div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="p-3 text-center"><i class="fas fa-clock fa-3x text-pablo mb-3"></i><h5>live wait time</h5><p class="text-secondary">see before entry</p></div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="p-3 text-center"><i class="fas fa-mug-hot fa-3x text-pablo mb-3"></i><h5>free coffee</h5><p class="text-secondary">while you wait</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 3: BOOKING FORM (opens after scan or click) ==================== -->
+<section class="py-5 bg-pablo-soft" id="bookingSection">
+  <div class="container">
+    <div class="row g-5">
+      <div class="col-lg-5">
+        <h2 class="section-header display-6 fw-bold">Book your slot</h2>
+        <p class="fs-5 mb-4">Fill the details or just scan the QR. After scanning, the form auto‑opens for you.</p>
+        <div class="d-flex gap-3">
+          <i class="fas fa-credit-card fa-2x text-pablo"></i>
+          <span><strong>pay by card / UPI / cash</strong> – all modes</span>
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <!-- Booking form (hidden initially? no, always visible but can be pre-filled) -->
+        <div class="booking-form-card" id="bookingFormCard">
+          <h4 class="mb-4"><i class="fas fa-calendar-alt text-pablo me-2"></i>Appointment details</h4>
+          <form id="appointmentForm">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Your name</label>
+                <input type="text" class="form-control form-control-lg rounded-pill" id="custName" placeholder="e.g. John" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Service</label>
+                <select class="form-select form-select-lg rounded-pill" id="custService">
+                  <option>Haircut</option>
+                  <option>Beard trim</option>
+                  <option>Hair + beard</option>
+                  <option>Royal shave</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Date</label>
+                <input type="date" class="form-control form-control-lg rounded-pill" id="custDate" value="2025-03-20">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Time (optional)</label>
+                <input type="time" class="form-control form-control-lg rounded-pill" id="custTime">
+              </div>
+              <div class="col-12 mt-4">
+                <button type="button" class="btn btn-pablo btn-lg w-100 rounded-pill" id="confirmBookingBtn">
+                  <i class="fas fa-check-circle me-2"></i>Confirm booking
+                </button>
+              </div>
+              <div class="col-12" id="bookingConfirmMessage"></div>
+            </div>
+          </form>
+          <p class="text-secondary small mt-3 mb-0"><i class="fas fa-info-circle"></i> After QR scan, we’ll fill your token automatically.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 4: SERVICES & PRICES ==================== -->
+<section class="py-5 bg-white">
+  <div class="container">
+    <h2 class="section-header display-6 fw-bold">Signature services</h2>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card border-0 rounded-4 shadow-sm p-4 h-100">
+          <i class="fas fa-cut fa-3x text-pablo mb-3"></i>
+          <h4>premium haircut</h4>
+          <p class="text-secondary">wash, cut & style, hot towel</p>
+          <span class="fw-bold fs-3">$32</span>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card border-0 rounded-4 shadow-sm p-4 h-100">
+          <i class="fas fa-razor fa-3x text-pablo mb-3"></i>
+          <h4>beard master</h4>
+          <p class="text-secondary">trim, steam, oil & shaping</p>
+          <span class="fw-bold fs-3">$24</span>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card border-0 rounded-4 shadow-sm p-4 h-100">
+          <i class="fas fa-spa fa-3x text-pablo mb-3"></i>
+          <h4>royal shave</h4>
+          <p class="text-secondary">straight razor, hot compress</p>
+          <span class="fw-bold fs-3">$38</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 5: TESTIMONIALS ==================== -->
+<section class="py-5 bg-pablo-soft">
+  <div class="container">
+    <h2 class="section-header display-6 fw-bold">Customer love</h2>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="testimonial-card">
+          <i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i>
+          <p class="mt-3 fst-italic">"Scanned the QR at the door, got a token, waited just 5 mins. Best haircut experience."</p>
+          <div><i class="fas fa-user-circle me-2 text-pablo"></i> Michael R.</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="testimonial-card">
+          <i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i>
+          <p class="mt-3">"Just tap the white scanner and it books a slot. Super easy, no app required."</p>
+          <div><i class="fas fa-user-circle me-2 text-pablo"></i> Sarah J.</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="testimonial-card">
+          <i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i><i class="fas fa-star text-warning"></i><i class="fas fa-star-half-alt text-warning"></i>
+          <p class="mt-3">"Walked in, scanned the QR, got a coffee, my turn came fast. Love the vibe."</p>
+          <div><i class="fas fa-user-circle me-2 text-pablo"></i> David L.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 6: CONTACT ==================== -->
+<section class="py-5 bg-white">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-6">
+        <h2 class="section-header display-6 fw-bold">Visit Pablo</h2>
+        <p><i class="fas fa-map-pin me-2 text-pablo"></i> 123 Main Street, Downtown, NY 10001</p>
+        <p><i class="fas fa-clock me-2 text-pablo"></i> Mon-Sun 9:00 AM – 9:00 PM</p>
+        <p><i class="fas fa-phone-alt me-2 text-pablo"></i> +1 (555) 234-5678</p>
+        <div class="mt-4 d-flex gap-3">
+          <span class="bg-light p-3 rounded-circle"><i class="fab fa-instagram fa-2x text-pablo"></i></span>
+          <span class="bg-light p-3 rounded-circle"><i class="fab fa-facebook fa-2x text-pablo"></i></span>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='0 0 400 200'%3E%3Crect width='400' height='200' fill='%23d9b382'/%3E%3Ctext x='40' y='120' font-family='Arial' font-size='24' fill='%232C1E12'%3Emap location - pablo salon%3C/text%3E%3C/svg%3E" class="img-fluid rounded-4" alt="map">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="footer pt-5 pb-4">
+  <div class="container">
+    <div class="row gy-4">
+      <div class="col-md-4">
+        <div class="d-flex align-items-center fs-2 fw-bold text-white"><i class="fas fa-mustache me-2" style="color: var(--pablo-tan);"></i>PABLO</div>
+        <p class="mt-3 text-secondary-50">instant slots · walk‑ins first<br> <i class="fas fa-phone-alt me-1"></i> +1 (555) 234-5678</p>
+      </div>
+      <div class="col-md-2">
+        <h5 class="text-white">Scan</h5>
+        <ul class="list-unstyled">
+          <li><a href="#" class="text-secondary">QR code</a></li>
+          <li><a href="#" class="text-secondary">how it works</a></li>
+        </ul>
+      </div>
+      <div class="col-md-2">
+        <h5 class="text-white">Services</h5>
+        <ul class="list-unstyled">
+          <li><a href="#" class="text-secondary">haircut</a></li>
+          <li><a href="#" class="text-secondary">beard</a></li>
+        </ul>
+      </div>
+      <div class="col-md-2">
+        <h5 class="text-white">Social</h5>
+        <ul class="list-unstyled d-flex gap-3">
+          <li><a href="#" class="text-white"><i class="fab fa-instagram fa-2x"></i></a></li>
+          <li><a href="#" class="text-white"><i class="fab fa-x-twitter fa-2x"></i></a></li>
+        </ul>
+      </div>
+    </div>
+    <hr class="border-secondary mt-4">
+    <div class="d-flex justify-content-between flex-wrap">
+      <span class="text-secondary"><i class="far fa-copyright me-1"></i>2025 Pablo Salon — instant QR booking</span>
+      <span class="text-secondary"><i class="fas fa-qrcode me-1"></i>scan at door — instant token</span>
+    </div>
+  </div>
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- QR code generation and interactions -->
+<script>
+(function() {
+  // ---------- 1. Generate dynamic QR code (original, scannable) ----------
+  const qrContainer = document.getElementById('dynamicQrCode');
+  // The QR data: when scanned, it could open a URL or just contain text.
+  // We'll make it contain a booking link + token for simulation.
+  const bookingUrl = 'https://herstudio.us/';  // example URL
+  QRCode.toCanvas(bookingUrl, { width: 160, margin: 1 }, function (error, canvas) {
+    if (error) {
+      console.error(error);
+      qrContainer.innerHTML = '<p class="text-danger">QR error</p>';
+    } else {
+      qrContainer.innerHTML = '';
+      qrContainer.appendChild(canvas);
+    }
+  });
+
+  // ---------- 2. White scanner simulation (click to book via form) ----------
+  const scannerDiv = document.getElementById('simulateScanner');
+  const scannerStatus = document.getElementById('scannerStatus');
+  const custNameInput = document.getElementById('custName');
+  const custServiceInput = document.getElementById('custService');
+  const bookingMessage = document.getElementById('bookingConfirmMessage');
+
+  // function to simulate scan and pre-fill/scroll to form
+  function simulateScanAndBook() {
+    // change scanner status
+    scannerStatus.innerHTML = '<span class="text-success"><i class="fas fa-check-circle"></i> QR scanned! Token generated: PABLO-' + Math.floor(Math.random()*9000+1000) + '</span>';
+    // highlight form
+    document.getElementById('bookingSection').scrollIntoView({ behavior: 'smooth' });
+    // Optionally pre-fill name with "Guest" or random
+    if (!custNameInput.value) {
+      custNameInput.value = "Walk-in customer";
+    }
+    // show message
+    bookingMessage.innerHTML = '<div class="alert alert-success mt-2">✅ QR scan successful! Please confirm booking below or adjust time.</div>';
+  }
+
+  scannerDiv.addEventListener('click', function(e) {
+    simulateScanAndBook();
+  });
+
+  // also make the QR code clickable to simulate (optional)
+  const qrCanvas = document.querySelector('#dynamicQrCode canvas');
+  if (qrCanvas) {
+    qrCanvas.addEventListener('click', function() {
+      simulateScanAndBook();
+    });
+  }
+
+  // ---------- 3. Confirm booking button logic ----------
+  const confirmBtn = document.getElementById('confirmBookingBtn');
+  confirmBtn.addEventListener('click', function() {
+    const name = custNameInput.value.trim() || 'Guest';
+    const service = custServiceInput.value;
+    const date = document.getElementById('custDate').value;
+    const time = document.getElementById('custTime').value || 'ASAP';
+    
+    bookingMessage.innerHTML = `<div class="alert alert-success mt-3 rounded-pill py-3">✅ Thank you ${name}! Your ${service} slot is confirmed for ${date} at ${time}. Show this at the salon or scan QR again.</div>`;
+  });
+
+  // ---------- 4. Optional: simulate that QR scan from mobile would open a page (but we already have canvas)
+  // For completeness: if the user scans the QR with phone, it could open a URL.
+  // We set the QR to point to current page with parameter ?scan=true
+  // we can detect if page load has that parameter:
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('scan') === 'true') {
+    simulateScanAndBook();
+  }
+
+})();
+</script>
+<style>
+  .text-secondary-50 { color: #b6a89b; }
+  .bg-pablo-soft { background-color: #fcf5ef; }
+  .card { transition: 0.2s; border: 1px solid #f0e2d6; }
+  .card:hover { box-shadow: 0 25px 30px -18px #ab8b70; }
+</style>
+</body>
+</html>
