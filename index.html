@@ -417,7 +417,7 @@
   const qrContainer = document.getElementById('dynamicQrCode');
   // The QR data: when scanned, it could open a URL or just contain text.
   // We'll make it contain a booking link + token for simulation.
-  const bookingUrl = 'https://herstudio.us/';  // example URL
+  const bookingUrl = 'https://salon-ggwt.onrender.com/';  // example URL
   QRCode.toCanvas(bookingUrl, { width: 160, margin: 1 }, function (error, canvas) {
     if (error) {
       console.error(error);
